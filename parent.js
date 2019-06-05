@@ -1,6 +1,5 @@
 const { fork } = require("child_process");
 const numCPUs = require("os").cpus().length;
-const randomName = require("node-random-name");
 const childModuleName = `${__dirname}/child.js`;
 
 let array = new Array(100000000);
