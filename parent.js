@@ -4,7 +4,7 @@ const childModuleName = `${__dirname}/child.js`;
 
 let array = new Array(Number(process.env.SIZE) || 10);
 let sum = 0;
-const children = new Array(numCPUs);
+const children = new Array(Number(process.env.CHILDREN) || numCPUs);
 let currentChild;
 
 // generate random numbers
