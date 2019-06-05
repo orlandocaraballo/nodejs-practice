@@ -2,7 +2,7 @@ const { fork } = require("child_process");
 const numCPUs = require("os").cpus().length;
 const childModuleName = `${__dirname}/child.js`;
 
-let array = new Array(100000000);
+let array = new Array(Number(process.env.SIZE) || 10);
 let sum = 0;
 const children = new Array(numCPUs);
 let currentChild;
@@ -28,9 +28,11 @@ if (process.env.MODE == "multi") {
       let { pid } = currentChild;
 
       sum += total;
-      console.log("Running total is:", sum);
+      // console.log("Running total is:", sum);
       console.log(`Worker ${pid} has died`);
     });
+
+    // currentChild.on("exit", ()=> "")
 
     currentChild.send(array.slice(offset, offset + amount - 1));
   }
@@ -38,3 +40,5 @@ if (process.env.MODE == "multi") {
   currentChild = fork(childModuleName);
   currentChild.send(array);
 }
+
+process.on("exit", () => console.log("Total sum is", sum));
