@@ -9,7 +9,13 @@ let currentChild;
 
 // generate random numbers
 for (let i = 0; i < array.length; ++i) {
-  array[i] = Math.floor(Math.random() * 10);
+  let innerArray = new Array(Math.floor(Math.random() * 100 + 1));
+
+  for (let j = 0; j < innerArray.length; ++j) {
+    innerArray[j] = Math.floor(Math.random() * 10);
+  }
+
+  array[i] = innerArray;
 }
 
 console.log(`Master process: ${process.pid} is running`);
@@ -21,18 +27,14 @@ if (process.env.MODE == "multi") {
     ++i, offset += amount
   ) {
     currentChild = fork(childModuleName);
+    let { pid } = currentChild;
 
-    console.log(`Forked worker ${currentChild.pid}`);
+    console.log(`Forked worker ${pid}`);
 
     currentChild.on("message", total => {
-      let { pid } = currentChild;
-
       sum += total;
-      // console.log("Running total is:", sum);
       console.log(`Worker ${pid} has died`);
     });
-
-    // currentChild.on("exit", ()=> "")
 
     currentChild.send(array.slice(offset, offset + amount - 1));
   }
