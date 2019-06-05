@@ -1,0 +1,14 @@
+{
+  "name": "nodejs-practice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "parent.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Orlando Caraballo",
+  "license": "ISC",
+  "dependencies": {
+    "node-random-name": "^1.0.1"
+  }
+}
