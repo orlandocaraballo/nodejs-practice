@@ -1,11 +1,17 @@
 const { fork } = require("child_process");
-const numCPUs = require("os").cpus().length;
-const childModuleName = `${__dirname}/child.js`;
+const numberOfCores = require("os").cpus().length;
+const childModuleName = `${__dirname}/worker.js`;
 
 let array = new Array(Number(process.env.SIZE) || 10);
 let sum = 0;
-const children = new Array(Number(process.env.CHILDREN) || numCPUs);
-let currentChild;
+
+// let user know master process is operational
+console.log(`Master process: ${process.pid} is running`);
+
+// set function to log results of work to console
+function logResult(result) {
+  console.log("Total sum is", result);
+}
 
 // generate random numbers
 for (let i = 0; i < array.length; ++i) {
@@ -18,9 +24,11 @@ for (let i = 0; i < array.length; ++i) {
   array[i] = innerArray;
 }
 
-console.log(`Master process: ${process.pid} is running`);
-
+// check if user wants to run in multicore mode
 if (process.env.MODE == "multi") {
+  const children = new Array(Number(process.env.CHILDREN) || numberOfCores);
+  let currentChild;
+
   for (
     let i = 0, offset = 0, amount = array.length / children.length;
     i < children.length;
@@ -36,11 +44,15 @@ if (process.env.MODE == "multi") {
       console.log(`Worker ${pid} has died`);
     });
 
+    // send array to worker to do some work
     currentChild.send(array.slice(offset, offset + amount - 1));
   }
-} else {
-  currentChild = fork(childModuleName);
-  currentChild.send(array);
-}
 
-process.on("exit", () => console.log("Total sum is", sum));
+  // on exit make sure to log result
+  process.on("exit", () => logResult(sum));
+} else {
+  const work = require("./worker");
+
+  // log master process result to console
+  logResult(work(array));
+}
