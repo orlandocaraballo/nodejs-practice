@@ -1,6 +1,6 @@
 const { fork } = require("child_process");
 const numberOfCores = require("os").cpus().length;
-const childModuleName = `${__dirname}/worker.js`;
+const workerModuleName = `${__dirname}/worker.js`;
 
 let array = new Array(Number(process.env.SIZE) || 10);
 let sum = 0;
@@ -26,32 +26,34 @@ for (let i = 0; i < array.length; ++i) {
 
 // check if user wants to run in multicore mode
 if (process.env.MODE == "multi") {
-  const children = new Array(Number(process.env.CHILDREN) || numberOfCores);
-  let currentChild;
+  // create an array to
+  const workerCount = Number(process.env.CHILDREN) || numberOfCores;
+  let currentWorker;
 
   for (
-    let i = 0, offset = 0, amount = array.length / children.length;
-    i < children.length;
+    let i = 0, offset = 0, amount = array.length / workerCount;
+    i < workerCount;
     ++i, offset += amount
   ) {
-    currentChild = fork(childModuleName);
-    let { pid } = currentChild;
+    currentWorker = fork(workerModuleName);
+    let { pid } = currentWorker;
 
     console.log(`Forked worker ${pid}`);
 
-    currentChild.on("message", total => {
+    currentWorker.on("message", total => {
       sum += total;
       console.log(`Worker ${pid} has died`);
     });
 
     // send array to worker to do some work
-    currentChild.send(array.slice(offset, offset + amount - 1));
+    currentWorker.send(array.slice(offset, offset + amount - 1));
   }
 
   // on exit make sure to log result
   process.on("exit", () => logResult(sum));
 } else {
-  const work = require("./worker");
+  // finally load worker module if necessary
+  const work = require(workerModuleName);
 
   // log master process result to console
   logResult(work(array));
